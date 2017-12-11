@@ -111,12 +111,12 @@ ys = np.append(ys0, ys1, axis=0)
 m, d = xs.shape
 w_init = np.matrix(np.zeros((d, 1)))
 
-# staleness_try = [5, 10, 20, 50, 100]
-staleness_try = [5, 10000]
+staleness_try = [0, 5, 10, 20, 50]
+# staleness_try = [5, 10000]
 colors = ['yellow', 'blue', 'black', 'red', 'green']
 nworkers = 16
 niters = 20
-rate = 3.0
+rate = 0.01
 
 batches = [minibatch(xs, ys, nworkers, i) for i in range(nworkers)]
 
@@ -142,6 +142,8 @@ for staleness in staleness_try:
             assert event_type == "pull"
             w_workers[worker_num] = w_server
 
-    plt.plot(range(len(objs_server)), np.log(objs_server), color=colors[staleness_try.index(staleness)])
+    plt.plot(range(len(objs_server)), np.log(objs_server), color=colors[staleness_try.index(staleness)], label=('Staleness: ' + str(staleness)))
 
+plt.title('Learning rate: ' + str(rate))
+plt.legend()
 plt.show()
