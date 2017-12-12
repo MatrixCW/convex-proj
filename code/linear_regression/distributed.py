@@ -28,12 +28,12 @@ def optimal_solve(X, y):
 def solve_distributed():
 	X, y, n, dim = data_loader.get_data()
 	X_trans = X.transpose()
-	iteration_cnt = 200
+	iteration_cnt = 100
 
 	opt_loss = optimal_solve(X, y)
 
-	all_staleness = [5, 10, 50, 100]
-	colors = ['yellow', 'blue', 'black', 'red']
+	all_staleness = [0, 5, 10, 20, 50]
+	colors = ['yellow', 'blue', 'black', 'red', 'green']
 
 	worker_cnt = 4
 
@@ -88,21 +88,23 @@ def solve_distributed():
 
 			else:
 				worker_param[worker_num] = np.copy(current_server_beta)
-		plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)])
+		plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)], label=('Staleness: ' + str(staleness)))
+	plt.title('Linear regression with backtrack linea search')
+	plt.legend()
 	plt.show()
 
 def solve_distributed_fixed():
 	X, y, n, dim = data_loader.get_data()
 	X_trans = X.transpose()
-	iteration_cnt = 1000
+	iteration_cnt = 5000
 
 	# step size 0.000001 , staleness = 5 converges, staleness = 100 diverges
-	step_size = 0.0000005
+	step_size = 0.0000007
 
 	opt_loss = optimal_solve(X, y)
 
-	all_staleness = [5, 10, 20, 100]
-	colors = ['yellow', 'blue', 'black', 'red']
+	all_staleness = [0, 5, 10, 20, 50]
+	colors = ['yellow', 'blue', 'black', 'red', 'green']
 	worker_cnt = 4
 
 	worker_data_X = []
@@ -146,8 +148,12 @@ def solve_distributed_fixed():
 			else:
 				worker_param[worker_num] = np.copy(current_server_beta)
 
-		plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)])
+		loss_to_plot = [current_loss[4 * i] for i in range(len(current_loss) // 4)]
+		plt.plot([i for i in range(len(loss_to_plot))], loss_to_plot, color=colors[all_staleness.index(staleness)], label=('Staleness: ' + str(staleness)))
+		# plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)], label=('Staleness: ' + str(staleness)))
+	plt.title('Linear regression with learning rate: ' + str(step_size))
+	plt.legend()
 	plt.show()
 
 
-solve_distributed()
+solve_distributed_fixed()

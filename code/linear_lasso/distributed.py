@@ -37,13 +37,13 @@ def soft_thres_op(lam, beta):
 def solve_distributed():
 	X, y, n, dim = data_loader.get_data()
 	X_trans = X.transpose()
-	iteration_cnt = 200
+	iteration_cnt = 75
 	lasso_lam = 1
 	opt_val = float('inf')
 	shrink_beta = 0.5
 
-	all_staleness = [5, 10, 20, 50, 100]
-	colors = ['yellow', 'blue', 'black', 'red', 'grey']
+	all_staleness = [0, 5, 10, 20, 50]
+	colors = ['yellow', 'blue', 'black', 'red', 'green']
 
 	worker_cnt = 4
 
@@ -61,6 +61,8 @@ def solve_distributed():
 		event_seq = seq_gen.gen_event_sequence(worker_cnt, staleness, iteration_cnt)
 		worker_param = {i : np.zeros(dim + 1) for i in range(worker_cnt)}
 		current_server_beta = np.zeros(dim + 1)
+
+		current_loss = []
 
 		for event in event_seq:
 			event_type, worker_num = event.split("_")
@@ -90,14 +92,17 @@ def solve_distributed():
 					else:
 						current_server_beta = try_param
 
-						local_loss = target_func(X, y, lasso_lam, current_server_beta)
-						print(local_loss)
-						# current_loss.append(math.log(loss_func(current_server_param)))
+						diff = target_func(X, y, lasso_lam, current_server_beta) - 4948.57512794
+						diff /= n
+						current_loss.append(math.log(diff))
+						print(math.log(diff))
 						break
-
 			else:
 				worker_param[worker_num] = np.copy(current_server_beta)
-		# plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)])
-	# plt.show()
+		loss_to_plot = [current_loss[4 * i] for i in range(len(current_loss) // 4)]
+		plt.plot([i for i in range(len(current_loss))], list(current_loss), color=colors[all_staleness.index(staleness)], label=('Staleness: ' + str(staleness)))
+	plt.title('Linear regression with L1 Regularization')
+	plt.legend()
+	plt.show()
 
 solve_distributed()
